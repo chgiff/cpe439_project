@@ -10,11 +10,15 @@ def configure_fpga(frequency, tolerance, match_time_ms):
 		mem[4:8] = struct.pack("I", tolerance)
 		mem[8:12] = struct.pack("I", match_time_ms)
 
-def wait_for_match():
+def wait_for_match(callback):
 	fd = os.open("/dev/uio0", os.O_RDONLY)
-	resp = os.read(fd, 4)
-	print("Match! " + str(struct.unpack("I", resp)))
+	while True:
+		resp = os.read(fd, 4)
+		callback()
 	os.close(fd)
+
+def found():
+	print("Match! ")
 
 
 def main():
@@ -24,7 +28,7 @@ def main():
 	configure_fpga(int(sys.argv[1]), int(sys.argv[2]), int(sys.argv[3]))
 
 	while(True):
-		wait_for_match()
+		wait_for_match(found)
 
 
 if __name__ == '__main__':
